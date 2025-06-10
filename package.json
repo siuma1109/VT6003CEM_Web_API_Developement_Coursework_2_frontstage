@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "react-image-gallery": "^1.4.0"
+  },
+  "devDependencies": {
+    "@types/react-image-gallery": "^1.2.4"
+  }
+}
