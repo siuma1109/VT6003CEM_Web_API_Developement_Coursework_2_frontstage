@@ -23,6 +23,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   name: string;
+  signUpCode?: string;
 }
 
 export interface CheckEmailResponse {
@@ -43,6 +44,32 @@ export interface AuthResponse {
     accessToken: string;
     refreshToken: string;
   };
+}
+
+// Signup Code types
+export interface SignupCode {
+  id: number;
+  code: string;
+  role: {
+    id: number;
+    name: string;
+  };
+  generatedBy: {
+    id: number;
+    name: string;
+    email: string;
+  };
+  createdAt: string;
+  usedAt: string | null;
+  usedBy: string | null;
+}
+
+// Role types
+export interface Role {
+  id: number;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Auth service methods
@@ -82,6 +109,32 @@ export const userService = {
 
   updateProfile: async (data: Partial<AuthResponse['user']>): Promise<ApiResponse<AuthResponse['user']>> => {
     const response = await apiClient.put(API_ENDPOINTS.USER.UPDATE_PROFILE, data);
+    return response.data;
+  },
+};
+
+// Signup Code service methods
+export const signupCodeService = {
+  generateCode: async (roleId: number): Promise<ApiResponse<SignupCode>> => {
+    const response = await apiClient.post(API_ENDPOINTS.SIGNUP_CODES.GENERATE, { roleId });
+    return response.data;
+  },
+
+  listCodes: async (): Promise<ApiResponse<SignupCode[]>> => {
+    const response = await apiClient.get(API_ENDPOINTS.SIGNUP_CODES.LIST);
+    return response.data;
+  },
+
+  deleteCode: async (id: number): Promise<ApiResponse<void>> => {
+    const response = await apiClient.delete(API_ENDPOINTS.SIGNUP_CODES.DELETE(id.toString()));
+    return response.data;
+  },
+};
+
+// Roles service methods
+export const rolesService = {
+  listRoles: async (): Promise<ApiResponse<Role[]>> => {
+    const response = await apiClient.get(API_ENDPOINTS.ROLES.LIST);
     return response.data;
   },
 }; 

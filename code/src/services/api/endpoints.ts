@@ -15,6 +15,18 @@ export const API_ENDPOINTS = {
     UPDATE_PROFILE: 'api/v1/users/me',
   },
 
+  // Signup Codes endpoints
+  SIGNUP_CODES: {
+    GENERATE: '/api/v1/sign-up-codes/generate',
+    LIST: '/api/v1/sign-up-codes',
+    DELETE: (id: string) => `/api/v1/sign-up-codes/${id}`,
+  },
+
+  // Roles endpoints
+  ROLES: {
+    LIST: '/api/v1/roles',
+  },
+
   // Hotel endpoints
   HOTELS: {
     LIST: '/api/v1/hotels',

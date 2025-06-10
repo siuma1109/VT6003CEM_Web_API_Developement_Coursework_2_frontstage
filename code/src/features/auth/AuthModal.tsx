@@ -13,6 +13,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [signUpCode, setSignUpCode] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login, register } = useAuth();
@@ -57,7 +58,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
     setIsLoading(true);
 
     try {
-      await register(email, password, name);
+      await register(email, password, name, signUpCode);
       onClose();
     } catch (err) {
       setError('Registration failed. Please try again.');
@@ -71,6 +72,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
       setCurrentStep('email-check');
       setPassword('');
       setName('');
+      setSignUpCode('');
       setError('');
     }
   };
@@ -186,6 +188,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
           className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
           placeholder="Please enter password (min. 6 characters)"
           minLength={6}
+        />
+      </div>
+      <div>
+        <label htmlFor="signup-code" className="sr-only">Sign Up Code</label>
+        <input
+          id="signup-code"
+          name="signup-code"
+          type="text"
+          required
+          value={signUpCode}
+          onChange={(e) => setSignUpCode(e.target.value)}
+          className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+          placeholder="Please enter your sign up code"
         />
       </div>
       <div>

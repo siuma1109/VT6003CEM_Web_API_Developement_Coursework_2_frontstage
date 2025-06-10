@@ -40,7 +40,7 @@ class AuthService {
     }
   }
 
-  public async register(userData: { email: string; password: string; name: string }): Promise<void> {
+  public async register(userData: { email: string; password: string; name: string; signUpCode?: string }): Promise<void> {
     try {
       const response = await apiAuthService.register(userData);
       const { accessToken, refreshToken } = response.metaData;
