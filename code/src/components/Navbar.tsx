@@ -1,18 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDarkMode } from '../context/DarkModeContext';
 import { useAuth } from '../context/AuthContext';
+import { userService } from '../services/api/apiService';
 
 interface NavbarProps {
   onLoginClick: () => void;
+}
+
+interface UserData {
+  avatar?: string;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const { isAuthenticated, logout } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const navigate = useNavigate();
   const [, setSearchParams] = useSearchParams();
+
+  const getAvatarUrl = (avatarPath: string) => {
+    const baseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8081';
+    return `${baseUrl}/${avatarPath}`;
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchUserData();
+    }
+  }, [isAuthenticated]);
+
+  const fetchUserData = async () => {
+    try {
+      const response = await userService.getProfile();
+      if (response.success) {
+        setUserData(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch user data:', error);
+    }
+  };
 
   const handleHomeClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -77,6 +105,29 @@ export const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                 className="flex items-center space-x-2 text-white hover:text-gray-200 focus:outline-none"
               >
+                <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-700">
+                  {userData?.avatar ? (
+                    <img
+                      src={getAvatarUrl(userData.avatar)}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <svg
+                        className="w-5 h-5 text-gray-400"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                </div>
                 <span>My Account</span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

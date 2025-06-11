@@ -13,6 +13,7 @@ export const API_ENDPOINTS = {
   USER: {
     PROFILE: 'api/v1/users/me',
     UPDATE_PROFILE: 'api/v1/users/me',
+    UPLOAD_AVATAR: 'api/v1/users/me/avatar',
   },
 
   // Signup Codes endpoints

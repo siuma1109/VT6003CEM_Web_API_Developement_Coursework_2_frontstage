@@ -44,6 +44,7 @@ export interface UserData {
   roles: Role[];
   createdAt: string;
   updatedAt: string;
+  avatar?: string;
 }
 
 export interface AuthResponse {
@@ -109,6 +110,15 @@ export const userService = {
 
   updateProfile: async (data: Partial<AuthResponse['user']>): Promise<ApiResponse<AuthResponse['user']>> => {
     const response = await apiClient.put(API_ENDPOINTS.USER.UPDATE_PROFILE, data);
+    return response.data;
+  },
+
+  uploadAvatar: async (formData: FormData): Promise<ApiResponse<AuthResponse['user']>> => {
+    const response = await apiClient.post(API_ENDPOINTS.USER.UPLOAD_AVATAR, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   },
 };
