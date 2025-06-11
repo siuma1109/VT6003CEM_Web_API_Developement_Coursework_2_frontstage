@@ -121,11 +121,11 @@ export const HotelCard: React.FC<HotelCardProps> = ({ hotel }) => {
       </div>
       <div className="p-4">
         <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-          {hotel.name}
+          {hotel.customData?.name || hotel.name}
         </h3>
         <div className="flex items-center gap-2 mb-2">
           <p className="text-gray-600 dark:text-gray-300">
-            {hotel.city}, {hotel.countryCode}
+            {hotel.customData?.city || hotel.city}, {hotel.customData?.countryCode || hotel.countryCode}
           </p>
           <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
             hotel.status === 'active' 
@@ -136,10 +136,10 @@ export const HotelCard: React.FC<HotelCardProps> = ({ hotel }) => {
           </span>
         </div>
         <p className="text-gray-700 dark:text-gray-400 text-sm mb-2">
-          {hotel.category}
+          {hotel.customData?.category || hotel.category}
         </p>
         <p className="text-gray-700 dark:text-gray-400 text-sm mb-4 line-clamp-3">
-          {hotel.description}
+          {hotel.customData?.description || hotel.description}
         </p>
       </div>
     </div>
