@@ -177,7 +177,8 @@ export const HotelList: React.FC = () => {
 
     try {
       const response = await hotelService.createHotel(newHotel);
-      setHotels(prev => [response, ...prev]);
+      console.log(response);
+      setHotels(prev => [response.data, ...prev]);
       setIsCreateModalOpen(false);
       setNewHotel({
         name: '',

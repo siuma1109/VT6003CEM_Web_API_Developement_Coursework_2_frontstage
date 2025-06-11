@@ -42,7 +42,7 @@ export const hotelService = {
   },
 
   // Create new hotel (admin only)
-  createHotel: async (hotelData: Omit<Hotel, 'id'>): Promise<Hotel> => {
+  createHotel: async (hotelData: Omit<Hotel, 'id'>): Promise<HotelResponse> => {
     const response = await apiClient.post(API_ENDPOINTS.HOTELS.CREATE, hotelData);
     return response.data;
   },
