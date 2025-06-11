@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDarkMode } from '../context/DarkModeContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -11,6 +11,16 @@ export const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const { isAuthenticated, logout } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const [, setSearchParams] = useSearchParams();
+
+  const handleHomeClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    // Clear all search parameters
+    setSearchParams({});
+    // Force a navigation to home with replace
+    navigate('/', { replace: true });
+  };
 
   const handleLogout = async () => {
     try {
@@ -26,7 +36,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
   return (
     <nav className="bg-primary-dark text-white py-4 shadow-md">
       <div className="container mx-auto px-4 flex justify-between items-center">
-        <Link to="/" className="flex items-center space-x-2">
+        <Link to="/" onClick={handleHomeClick} className="flex items-center space-x-2">
           <span className="text-2xl font-bold">Travel Agency</span>
         </Link>
         

@@ -4,7 +4,9 @@ import { SearchBar } from '../../components/SearchBar';
 import { Pagination } from '../../components/Pagination';
 import { HotelCard } from './HotelCard';
 import { hotelService } from '../../services/api/hotelService';
+import { userService, Role } from '../../services/api/apiService';
 import { Hotel, HotelSearchParams } from '../../types/hotel';
+import authService from '../../services/authService';
 
 const SkeletonHotelCard: React.FC = () => {
   return (
@@ -46,10 +48,51 @@ export const HotelList: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [userRoles, setUserRoles] = useState<Role[]>([]);
+  const [newHotel, setNewHotel] = useState({
+    name: '',
+    description: '',
+    address: '',
+    postalCode: '',
+    city: '',
+    countryCode: '',
+    category: '',
+    status: 'pending',
+    email: '',
+    phones: [],
+    stateCode: '',
+    destinationCode: '',
+    zoneCode: '',
+    latitude: 0,
+    longitude: 0,
+    images: [],
+    customData: {},
+    lastUpdated: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  });
+
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
 
   const pageSize = 6;
   const currentPage = Number(searchParams.get('page')) || 1;
-  const debouncedSearchQuery = useDebounce(searchInput, 500); // 500ms delay
+  const debouncedSearchQuery = useDebounce(searchInput, 500);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        if (authService.isAuthenticated()) {
+          const response = await userService.getProfile();
+          setUserRoles(response.data.roles);
+        }
+      } catch (err) {
+        console.error('Error fetching user profile:', err);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   const handlePageChange = (page: number) => {
     setSearchParams(prev => {
@@ -94,11 +137,87 @@ export const HotelList: React.FC = () => {
     fetchHotels();
   }, [debouncedSearchQuery, currentPage]);
 
+  const validateForm = () => {
+    const errors: { [key: string]: string } = {};
+    if (!newHotel.name.trim()) {
+      errors.name = 'Hotel name is required';
+    }
+    if (!newHotel.email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newHotel.email)) {
+      errors.email = 'Please enter a valid email address';
+    }
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleCreateHotel = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    try {
+      const response = await hotelService.createHotel(newHotel);
+      setHotels(prev => [response, ...prev]);
+      setIsCreateModalOpen(false);
+      setNewHotel({
+        name: '',
+        description: '',
+        address: '',
+        postalCode: '',
+        city: '',
+        countryCode: '',
+        category: '',
+        status: 'pending',
+        email: '',
+        phones: [],
+        stateCode: '',
+        destinationCode: '',
+        zoneCode: '',
+        latitude: 0,
+        longitude: 0,
+        images: [],
+        customData: {},
+        lastUpdated: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+      setFormErrors({});
+    } catch (error: any) {
+      console.error('Error creating hotel:', error);
+      if (error.response?.data?.errors) {
+        setFormErrors({ submit: error.response.data.errors });
+      } else {
+        setFormErrors({ submit: 'Failed to create hotel. Please try again.' });
+      }
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setNewHotel(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const canEdit = userRoles.some(role => role.name === 'admin' || role.name === 'travel_agency_operator');
+
   return (
     <div className="max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
-        Find Your Perfect Stay
-      </h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          Find Your Perfect Stay
+        </h1>
+        {canEdit && (
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+          >
+            Add New Hotel
+          </button>
+        )}
+      </div>
       
       <SearchBar
         value={searchInput}
@@ -130,6 +249,171 @@ export const HotelList: React.FC = () => {
             </div>
           )}
         </>
+      )}
+
+      {/* Create Hotel Modal */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              Add New Hotel
+            </h2>
+            {formErrors.submit && (
+              <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg dark:bg-red-900 dark:text-red-200">
+                {formErrors.submit}
+              </div>
+            )}
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Hotel Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={newHotel.name}
+                  onChange={handleInputChange}
+                  className={`mt-1 block w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
+                    formErrors.name ? 'border-red-500' : ''
+                  }`}
+                />
+                {formErrors.name && (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.name}</p>
+                )}
+              </div>
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Email <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={newHotel.email}
+                  onChange={handleInputChange}
+                  className={`mt-1 block w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
+                    formErrors.email ? 'border-red-500' : ''
+                  }`}
+                />
+                {formErrors.email && (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.email}</p>
+                )}
+              </div>
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Description
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  value={newHotel.description}
+                  onChange={handleInputChange}
+                  rows={4}
+                  className="mt-1 block w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+              <div>
+                <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Address
+                </label>
+                <input
+                  type="text"
+                  id="address"
+                  name="address"
+                  value={newHotel.address}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+              <div>
+                <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Postal Code
+                </label>
+                <input
+                  type="text"
+                  id="postalCode"
+                  name="postalCode"
+                  value={newHotel.postalCode}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+              <div>
+                <label htmlFor="city" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  City
+                </label>
+                <input
+                  type="text"
+                  id="city"
+                  name="city"
+                  value={newHotel.city}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+              <div>
+                <label htmlFor="countryCode" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Country Code
+                </label>
+                <input
+                  type="text"
+                  id="countryCode"
+                  name="countryCode"
+                  value={newHotel.countryCode}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+              <div>
+                <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Category
+                </label>
+                <input
+                  type="text"
+                  id="category"
+                  name="category"
+                  value={newHotel.category}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+              <div>
+                <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Status
+                </label>
+                <select
+                  id="status"
+                  name="status"
+                  value={newHotel.status}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-4 mt-6">
+                <button
+                  onClick={() => {
+                    setIsCreateModalOpen(false);
+                    setFormErrors({});
+                  }}
+                  className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateHotel}
+                  className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  Create Hotel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

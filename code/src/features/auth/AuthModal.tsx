@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { authService as apiAuthService } from '../../services/api/apiService';
 
 interface AuthModalProps {
   onClose: () => void;
+  returnUrl?: string | null;
 }
 
 type AuthStep = 'email-check' | 'login' | 'register';
 
-export const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ onClose, returnUrl }) => {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState<AuthStep>('email-check');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -45,6 +48,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
     try {
       await login(email, password);
       onClose();
+      if (returnUrl) {
+        navigate(returnUrl);
+      }
     } catch (err) {
       setError('Invalid email or password');
     } finally {
@@ -60,6 +66,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
     try {
       await register(email, password, name, signUpCode);
       onClose();
+      if (returnUrl) {
+        navigate(returnUrl);
+      }
     } catch (err) {
       setError('Registration failed. Please try again.');
     } finally {

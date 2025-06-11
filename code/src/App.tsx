@@ -12,6 +12,7 @@ import ProfilePage from './pages/ProfilePage';
 function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
+  const [returnUrl, setReturnUrl] = useState<string | null>(null);
 
   const handleLoginClick = () => {
     setIsAuthModalOpen(true);
@@ -19,15 +20,17 @@ function App() {
 
   const handleCloseAuthModal = () => {
     setIsAuthModalOpen(false);
+    setReturnUrl(null);
   };
 
   useEffect(() => {
-    const handleAuthRequired = () => {
+    const handleAuthRequired = (event: CustomEvent) => {
+      setReturnUrl(event.detail.returnUrl);
       setIsAuthModalOpen(true);
     };
 
-    window.addEventListener('authRequired', handleAuthRequired);
-    return () => window.removeEventListener('authRequired', handleAuthRequired);
+    window.addEventListener('authRequired', handleAuthRequired as EventListener);
+    return () => window.removeEventListener('authRequired', handleAuthRequired as EventListener);
   }, []);
 
   return (
@@ -49,7 +52,7 @@ function App() {
             onClose={handleCloseAuthModal}
             title="Login / Register"
           >
-            <AuthModal onClose={handleCloseAuthModal} />
+            <AuthModal onClose={handleCloseAuthModal} returnUrl={returnUrl} />
           </Modal>
         </Router>
       </DarkModeProvider>

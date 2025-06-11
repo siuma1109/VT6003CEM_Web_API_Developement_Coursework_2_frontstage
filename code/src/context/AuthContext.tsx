@@ -51,9 +51,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Clear any other auth-related data from localStorage if needed
       localStorage.removeItem('user');
-      
-      // Redirect to home page if needed
-      window.location.href = '/';
     }
   };
 

@@ -1,6 +1,6 @@
 export interface Hotel {
   id: number;
-  hotelBedsId: number;
+  hotelBedsId?: number;
   name: string;
   description: string;
   address: string;

@@ -96,4 +96,33 @@ class AuthService {
   }
 }
 
+const dispatchAuthStateChanged = () => {
+  window.dispatchEvent(new Event('authStateChanged'));
+};
+
+export const login = async (email: string, password: string): Promise<void> => {
+  try {
+    const response = await apiAuthService.login({ email, password });
+    localStorage.setItem('token', response.metaData.accessToken);
+    dispatchAuthStateChanged();
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const register = async (email: string, password: string, name: string, signUpCode: string): Promise<void> => {
+  try {
+    const response = await apiAuthService.register({ email, password, name, signUpCode });
+    localStorage.setItem('token', response.metaData.accessToken);
+    dispatchAuthStateChanged();
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const logout = (): void => {
+  localStorage.removeItem('token');
+  dispatchAuthStateChanged();
+};
+
 export default AuthService.getInstance(); 

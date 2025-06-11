@@ -36,7 +36,10 @@ axiosInstance.interceptors.response.use(
       try {
         // Dispatch a custom event to show auth modal
         const authRequiredEvent = new CustomEvent('authRequired', {
-          detail: { message: 'Please login to continue' }
+          detail: { 
+            message: 'Please login to continue',
+            returnUrl: window.location.pathname
+          }
         });
         window.dispatchEvent(authRequiredEvent);
 

@@ -34,52 +34,66 @@ export const HotelDetails: React.FC = () => {
   const [userRoles, setUserRoles] = useState<Role[]>([]);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        if (authService.isAuthenticated()) {
-          const response = await userService.getProfile();
-          setUserRoles(response.data.roles);
-        }
-      } catch (err) {
-        console.error('Error fetching user profile:', err);
-      } finally {
-        setIsLoadingUser(false);
+  const fetchHotelDetails = async () => {
+    if (!id) return;
+
+    try {
+      setLoading(true);
+      const response = await hotelService.getHotelById(id);
+      setHotel(response.data);
+      setEditedHotel({
+        ...response.data,
+        name: response.data.customData?.name || response.data.name,
+        description: response.data.customData?.description || response.data.description,
+        address: response.data.customData?.address || response.data.address,
+        postalCode: response.data.customData?.postalCode || response.data.postalCode,
+        category: response.data.customData?.category || response.data.category,
+        city: response.data.customData?.city || response.data.city,
+        countryCode: response.data.customData?.countryCode || response.data.countryCode,
+      });
+      setError(null);
+    } catch (err) {
+      setError('Failed to load hotel details. Please try again later.');
+      console.error('Error fetching hotel details:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUserProfile = async () => {
+    try {
+      setIsLoadingUser(true);
+      if (authService.isAuthenticated()) {
+        const response = await userService.getProfile();
+        setUserRoles(response.data.roles);
+      } else {
+        setUserRoles([]);
       }
+    } catch (err) {
+      console.error('Error fetching user profile:', err);
+      setUserRoles([]);
+    } finally {
+      setIsLoadingUser(false);
+    }
+  };
+
+  // Listen for auth changes
+  useEffect(() => {
+    const handleAuthChange = () => {
+      fetchUserProfile();
+      fetchHotelDetails();
     };
 
-    fetchUserProfile();
-  }, []);
+    // Initial fetch
+    handleAuthChange();
 
-  useEffect(() => {
-    const fetchHotelDetails = async () => {
-      if (!id) return;
+    // Add event listener for auth changes
+    window.addEventListener('authStateChanged', handleAuthChange);
 
-      try {
-        setLoading(true);
-        const response = await hotelService.getHotelById(id);
-        setHotel(response.data);
-        setEditedHotel({
-          ...response.data,
-          name: response.data.customData?.name || response.data.name,
-          description: response.data.customData?.description || response.data.description,
-          address: response.data.customData?.address || response.data.address,
-          postalCode: response.data.customData?.postalCode || response.data.postalCode,
-          category: response.data.customData?.category || response.data.category,
-          city: response.data.customData?.city || response.data.city,
-          countryCode: response.data.customData?.countryCode || response.data.countryCode,
-        });
-        setError(null);
-      } catch (err) {
-        setError('Failed to load hotel details. Please try again later.');
-        console.error('Error fetching hotel details:', err);
-      } finally {
-        setLoading(false);
-      }
+    return () => {
+      window.removeEventListener('authStateChanged', handleAuthChange);
     };
-
-    fetchHotelDetails();
-  }, [id]);
+  }, [id, authService.isAuthenticated()]);
 
   const handleUpdateHotel = async () => {
     if (!id || !editedHotel) return;
@@ -95,12 +109,26 @@ export const HotelDetails: React.FC = () => {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setEditedHotel(prev => ({
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleDeleteHotel = async () => {
+    if (!id) return;
+    
+    if (window.confirm('Are you sure you want to delete this hotel?')) {
+      try {
+        await hotelService.deleteHotel(id);
+        navigate('/');
+      } catch (err) {
+        setError('Failed to delete hotel. Please try again later.');
+        console.error('Error deleting hotel:', err);
+      }
+    }
   };
 
   const canEdit = userRoles.some(role => role.name === 'admin' || role.name === 'travel_agency_operator');
@@ -175,7 +203,7 @@ export const HotelDetails: React.FC = () => {
 
       {/* Hotel Information */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-3">
+        <div className="md:col-span-3 min-h-[500px]">
           {isEditing ? (
             <div className="space-y-4">
               <div>
@@ -269,6 +297,24 @@ export const HotelDetails: React.FC = () => {
                   className="mt-1 block w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
               </div>
+              {canEdit && (
+                <div>
+                  <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Status
+                  </label>
+                  <select
+                    id="status"
+                    name="status"
+                    value={editedHotel.status || hotel.status}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              )}
               <div className="flex gap-4">
                 <button
                   onClick={handleUpdateHotel}
@@ -293,6 +339,13 @@ export const HotelDetails: React.FC = () => {
                 <span className="text-gray-600 dark:text-gray-300">
                   {(hotel.customData?.category || hotel.category)} • {(hotel.customData?.city || hotel.city)}, {(hotel.customData?.countryCode || hotel.countryCode)}
                 </span>
+                <span className={`ml-4 px-3 py-1 rounded-full text-sm font-medium ${
+                  hotel.status === 'active' 
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                    : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                }`}>
+                  {(typeof hotel.status === 'string' ? hotel.status.charAt(0).toUpperCase() + hotel.status.slice(1) : 'Unknown')}
+                </span>
               </div>
               <p className="text-gray-600 dark:text-gray-300 mb-4">
                 {(hotel.customData?.address || hotel.address)}, {(hotel.customData?.postalCode || hotel.postalCode)}
@@ -303,19 +356,29 @@ export const HotelDetails: React.FC = () => {
               
               {/* Action Buttons */}
               <div className="flex gap-4 mb-6">
-                <button
-                  onClick={() => setIsChatOpen(true)}
-                  className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center gap-2"
-                >
-                  Send Message
-                </button>
-                {canEdit && (
+                {hotel.status === 'active' && (
                   <button
-                    onClick={() => setIsEditing(true)}
-                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                    onClick={() => setIsChatOpen(true)}
+                    className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center gap-2"
                   >
-                    Edit Hotel
+                    Send Message
                   </button>
+                )}
+                {canEdit && (
+                  <>
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                    >
+                      Edit Hotel
+                    </button>
+                    <button
+                      onClick={handleDeleteHotel}
+                      className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+                    >
+                      Delete Hotel
+                    </button>
+                  </>
                 )}
               </div>
             </>
