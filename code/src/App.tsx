@@ -9,6 +9,7 @@ import { DarkModeProvider } from './context/DarkModeContext';
 import { AuthProvider } from './context/AuthContext';
 import ProfilePage from './pages/ProfilePage';
 import { FavouritesPage } from './features/favourites/FavouritesPage';
+import { ChatRooms } from './pages/ChatRooms';
 
 function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -52,14 +53,15 @@ function App() {
     <AuthProvider>
       <DarkModeProvider>
         <Router>
-          <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+          <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
             <Navbar onLoginClick={handleLoginClick} />
-            <main className="container mx-auto px-4 py-8">
+            <main className="flex-1 container mx-auto px-4 py-8">
               <Routes>
                 <Route path="/" element={<HotelList />} />
                 <Route path="/hotels/:id" element={<HotelDetails />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/favourites" element={<FavouritesPage />} />
+                <Route path="/chat-rooms" element={<ChatRooms />} />
               </Routes>
             </main>
           </div>

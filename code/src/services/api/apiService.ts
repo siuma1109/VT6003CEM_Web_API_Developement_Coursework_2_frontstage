@@ -74,6 +74,68 @@ export interface SignupCode {
   usedBy: string | null;
 }
 
+// Chat Room types
+export interface ChatRoom {
+  id: number;
+  userId: number;
+  hotelId: number;
+  newMessageTime: string;
+  createdAt: string;
+  updatedAt: string;
+  hotel?: {
+    id: number;
+    name: string;
+    images?: string[];
+  };
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+    avatar?: string;
+  };
+  messages?: ChatMessage[];
+}
+
+export interface ChatMessage {
+  id: number;
+  chatRoomId: number;
+  senderId: number;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  sender?: {
+    id: number;
+    name: string;
+    email: string;
+    avatar?: string;
+  };
+}
+
+export interface ChatRoomListResponse {
+  status: number;
+  success: boolean;
+  message: string;
+  paginate: {
+    total: number;
+    per_page: number;
+    current_page: number;
+    last_page: number;
+  };
+  data: ChatRoom[];
+}
+
+export interface ChatMessageListResponse {
+  success: boolean;
+  message: string;
+  paginate: {
+    total: number;
+    per_page: number;
+    current_page: number;
+    last_page: number;
+  };
+  data: ChatMessage[];
+}
+
 // Auth service methods
 export const authService = {
   login: async (data: LoginRequest): Promise<ApiResponse<UserData>> => {
@@ -166,6 +228,44 @@ export const signupCodeService = {
 export const rolesService = {
   listRoles: async (): Promise<ApiResponse<Role[]>> => {
     const response = await apiClient.get(API_ENDPOINTS.ROLES.LIST);
+    return response.data;
+  },
+};
+
+// Chat Room service methods
+export const chatRoomService = {
+  getChatRooms: async (params?: { page?: number; limit?: number; search?: string }): Promise<ChatRoomListResponse> => {
+    const response = await apiClient.get(API_ENDPOINTS.CHATROOMS.LIST, { params });
+    return response.data;
+  },
+
+  createChatRoom: async (hotelId: number): Promise<ApiResponse<ChatRoom>> => {
+    const response = await apiClient.post(API_ENDPOINTS.CHATROOMS.LIST, { hotelId });
+    return response.data;
+  },
+
+  getChatRoom: async (id: number): Promise<ApiResponse<ChatRoom>> => {
+    const response = await apiClient.get(`${API_ENDPOINTS.CHATROOMS.LIST}/${id}`);
+    return response.data;
+  },
+
+  updateChatRoom: async (id: number, hotelId: number): Promise<ApiResponse<ChatRoom>> => {
+    const response = await apiClient.put(`${API_ENDPOINTS.CHATROOMS.LIST}/${id}`, { hotelId });
+    return response.data;
+  },
+
+  deleteChatRoom: async (id: number): Promise<ApiResponse<void>> => {
+    const response = await apiClient.delete(`${API_ENDPOINTS.CHATROOMS.LIST}/${id}`);
+    return response.data;
+  },
+
+  getMessages: async (chatRoomId: number, params?: { page?: number; limit?: number }): Promise<ChatMessageListResponse> => {
+    const response = await apiClient.get(`${API_ENDPOINTS.CHATROOMS.LIST}/${chatRoomId}/messages`, { params });
+    return response.data;
+  },
+
+  createMessage: async (chatRoomId: number, content: string): Promise<ApiResponse<ChatMessage>> => {
+    const response = await apiClient.post(`${API_ENDPOINTS.CHATROOMS.LIST}/${chatRoomId}`, { content });
     return response.data;
   },
 }; 

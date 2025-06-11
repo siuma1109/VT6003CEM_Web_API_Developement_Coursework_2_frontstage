@@ -1,6 +1,7 @@
 import apiClient from './apiClient';
 import { API_ENDPOINTS } from './endpoints';
 import { Hotel, HotelSearchParams } from '../../types/hotel';
+import { ApiResponse, ChatRoom } from './apiService';
 
 // Types
 export interface HotelSearchResponse {
@@ -55,5 +56,10 @@ export const hotelService = {
   // Delete hotel (admin only)
   deleteHotel: async (id: string): Promise<void> => {
     await apiClient.delete(API_ENDPOINTS.HOTELS.DELETE(id));
+  },
+
+  getChatRoom: async (id: string): Promise<ApiResponse<ChatRoom>> => {
+    const response = await apiClient.get(API_ENDPOINTS.HOTELS.CHATROOM(id));
+    return response.data;
   },
 }; 

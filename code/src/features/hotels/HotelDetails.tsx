@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import ImageGallery from 'react-image-gallery';
 import "react-image-gallery/styles/css/image-gallery.css";
 import { hotelService } from '../../services/api/hotelService';
-import { userService, Role } from '../../services/api/apiService';
+import { userService, Role, chatRoomService, ChatMessage } from '../../services/api/apiService';
 import { Hotel } from '../../types/hotel';
 import { ChatRoom } from '../../components/ChatRoom';
 import { useAuth } from '../../context/AuthContext';
@@ -37,6 +37,11 @@ export const HotelDetails: React.FC = () => {
   const [isFavourite, setIsFavourite] = useState(false);
   const [isCheckingFavourite, setIsCheckingFavourite] = useState(true);
   const [favouriteError, setFavouriteError] = useState<string | null>(null);
+  const [chatRoomId, setChatRoomId] = useState<number | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [newMessage, setNewMessage] = useState('');
 
   const fetchHotelDetails = async () => {
     if (!id) return;
@@ -165,6 +170,49 @@ export const HotelDetails: React.FC = () => {
 
   const canEdit = isAuthenticated && userRoles.some(role => role.name === 'admin' || role.name === 'travel_agency_operator');
 
+  const handleSendMessage = async (message: string) => {
+    if (!hotel || !chatRoomId) return;
+
+    try {
+      setSendingMessage(true);
+      const response = await chatRoomService.createMessage(chatRoomId, message);
+      if (response.success) {
+        setMessages(prev => [...prev, response.data]);
+        setNewMessage('');
+      }
+    } catch (err) {
+      console.error('Error sending message:', err);
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  const fetchChatRoom = async () => {
+    if (!hotel || !isAuthenticated) return;
+
+    try {
+      setLoadingMessages(true);
+      const response = await hotelService.getChatRoom(hotel.id.toString());
+      if (response && response.data) {
+        setChatRoomId(response.data.id);
+        const messagesResponse = await chatRoomService.getMessages(response.data.id);
+        if (messagesResponse.success) {
+          setMessages(messagesResponse.data);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching chat room:', err);
+    } finally {
+      setLoadingMessages(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isChatOpen) {
+      fetchChatRoom();
+    }
+  }, [isChatOpen, hotel]);
+
   if (loading) {
     return <SkeletonHotelDetails />;
   }
@@ -194,11 +242,6 @@ export const HotelDetails: React.FC = () => {
         thumbnail: `https://media.hotelbeds.com/giata/${image}`,
       }))
     : [];
-
-  const handleSendMessage = (message: string) => {
-    // Here you can implement the actual message sending logic
-    console.log('Sending message to hotel:', message);
-  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -456,6 +499,11 @@ export const HotelDetails: React.FC = () => {
               onClose={() => setIsChatOpen(false)}
               title={`Chat with ${hotel.name}`}
               onSendMessage={handleSendMessage}
+              messages={messages}
+              loading={loadingMessages}
+              sendingMessage={sendingMessage}
+              newMessage={newMessage}
+              setNewMessage={setNewMessage}
             />
           )}
           

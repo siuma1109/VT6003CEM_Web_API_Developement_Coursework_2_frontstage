@@ -1,8 +1,9 @@
-import { authService as apiAuthService } from './api/apiService';
+import { authService as apiAuthService, UserData } from './api/apiService';
 
 interface LoginResponse {
   accessToken: string;
   refreshToken: string;
+  user: UserData;
 }
 
 interface LoginCredentials {
@@ -34,7 +35,7 @@ class AuthService {
       const { accessToken, refreshToken } = response.metaData;
 
       this.setTokens(accessToken, refreshToken);
-      return { accessToken, refreshToken };
+      return { accessToken, refreshToken, user: response.data };
     } catch (error) {
       throw error;
     }
@@ -100,11 +101,16 @@ const dispatchAuthStateChanged = () => {
   window.dispatchEvent(new Event('authStateChanged'));
 };
 
-export const login = async (email: string, password: string): Promise<void> => {
+export const login = async (email: string, password: string): Promise<LoginResponse> => {
   try {
     const response = await apiAuthService.login({ email, password });
     localStorage.setItem('access_token', response.metaData.accessToken);
     dispatchAuthStateChanged();
+    return {
+      accessToken: response.metaData.accessToken,
+      refreshToken: response.metaData.refreshToken,
+      user: response.data
+    };
   } catch (error) {
     throw error;
   }

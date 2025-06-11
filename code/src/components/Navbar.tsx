@@ -10,6 +10,7 @@ interface NavbarProps {
 
 interface UserData {
   avatar?: string;
+  name?: string;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
@@ -69,6 +70,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
         </Link>
         
         <div className="flex items-center space-x-4">
+          {isAuthenticated && (
+            <Link
+              to="/chat-rooms"
+              className="text-white hover:text-gray-200 transition-colors"
+            >
+              Chat Rooms
+            </Link>
+          )}
           <button
             onClick={toggleDarkMode}
             className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 text-white"
@@ -128,7 +137,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onLoginClick }) => {
                     </div>
                   )}
                 </div>
-                <span>My Account</span>
+                <span>{userData?.name || 'My Account'}</span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className={`h-5 w-5 transform transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`}

@@ -39,7 +39,15 @@ export const API_ENDPOINTS = {
     CREATE: '/api/v1/hotels',
     UPDATE: (id: string | number) => `/api/v1/hotels/${id}`,
     DELETE: (id: string | number) => `/api/v1/hotels/${id}`,
+    CHATROOM: (id: string | number) => `/api/v1/hotels/${id}/chat-room`,
   },
+
+  // Chat rooms endpoints
+  CHATROOMS: {
+    LIST: '/api/v1/chat-rooms',
+    DETAIL: (id: number) => `/api/v1/chat-rooms/${id}`,
+    MESSAGES: (id: number) => `/api/v1/chat-rooms/${id}/messages`,
+  }
   
   // Add more endpoint categories as needed
   // Example:
