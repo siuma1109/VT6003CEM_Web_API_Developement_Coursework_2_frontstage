@@ -84,7 +84,7 @@ class AuthService {
     localStorage.setItem('refreshToken', refreshToken);
   }
 
-  private clearTokens(): void {
+  public clearTokens(): void {
     this.access_token = null;
     this.refreshToken = null;
     localStorage.removeItem('access_token');

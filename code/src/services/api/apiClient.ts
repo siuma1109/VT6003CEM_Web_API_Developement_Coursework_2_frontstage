@@ -35,8 +35,8 @@ apiClient.interceptors.response.use(
 
         // If error is 401 and we haven't tried to refresh token yet
         if (error.response?.status === 401 && !originalRequest._retry) {
-            originalRequest._retry = true;
-
+            originalRequest._retry = true; // Mark that we've attempted a refresh
+            
             try {
                 // Try to refresh token
                 const refreshToken = authService.getRefreshToken();
@@ -59,11 +59,14 @@ apiClient.interceptors.response.use(
                 }
             } catch (refreshError) {
                 // If refresh token fails, clear tokens and redirect to login
-                await authService.logout();
+                // Don't try to call logout API since we're already having auth issues
+                authService.clearTokens();
                 window.location.href = '/';
+                return Promise.reject(refreshError);
             }
         }
 
+        // If we get here, either it wasn't a 401 error or the refresh failed
         return Promise.reject(error);
     }
 );
