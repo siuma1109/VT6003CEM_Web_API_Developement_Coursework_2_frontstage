@@ -30,10 +30,18 @@ export interface CheckEmailResponse {
   exists: boolean;
 }
 
+export interface Role {
+  id: number;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface UserData {
   id: number;
   name: string;
   email: string;
+  roles: Role[];
   createdAt: string;
   updatedAt: string;
 }
@@ -62,14 +70,6 @@ export interface SignupCode {
   createdAt: string;
   usedAt: string | null;
   usedBy: string | null;
-}
-
-// Role types
-export interface Role {
-  id: number;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 // Auth service methods

@@ -47,7 +47,7 @@ export const hotelService = {
   },
 
   // Update hotel (admin only)
-  updateHotel: async (id: string, hotelData: Partial<Hotel>): Promise<Hotel> => {
+  updateHotel: async (id: string, hotelData: Partial<Hotel>): Promise<HotelResponse> => {
     const response = await apiClient.put(API_ENDPOINTS.HOTELS.UPDATE(id), hotelData);
     return response.data;
   },
