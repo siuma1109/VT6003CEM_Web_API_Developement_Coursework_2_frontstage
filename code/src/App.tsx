@@ -8,6 +8,7 @@ import { AuthModal } from './features/auth/AuthModal';
 import { DarkModeProvider } from './context/DarkModeContext';
 import { AuthProvider } from './context/AuthContext';
 import ProfilePage from './pages/ProfilePage';
+import { FavouritesPage } from './features/favourites/FavouritesPage';
 
 function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -58,6 +59,7 @@ function App() {
                 <Route path="/" element={<HotelList />} />
                 <Route path="/hotels/:id" element={<HotelDetails />} />
                 <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/favourites" element={<FavouritesPage />} />
               </Routes>
             </main>
           </div>

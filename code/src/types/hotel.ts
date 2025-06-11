@@ -38,4 +38,10 @@ export interface PaginatedResponse<T> {
   page: number;
   pageSize: number;
   totalPages: number;
+}
+
+export interface FavouriteHotel {
+  id: number;
+  hotelId: number;
+  hotel: Hotel;
 } 

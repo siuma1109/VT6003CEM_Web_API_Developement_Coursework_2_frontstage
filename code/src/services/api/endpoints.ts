@@ -11,9 +11,13 @@ export const API_ENDPOINTS = {
   
   // User endpoints
   USER: {
-    PROFILE: 'api/v1/users/me',
-    UPDATE_PROFILE: 'api/v1/users/me',
-    UPLOAD_AVATAR: 'api/v1/users/me/avatar',
+    PROFILE: '/api/v1/users/me',
+    UPDATE_PROFILE: '/api/v1/users/me',
+    UPLOAD_AVATAR: '/api/v1/users/me/avatar',
+    GET_FAVOURITES: (userId: string | number) => `/api/v1/users/${userId}/favourites`,
+    ADD_FAVOURITE: (userId: string | number) => `/api/v1/users/${userId}/favourites`,
+    REMOVE_FAVOURITE: (userId: string | number) => `/api/v1/users/${userId}/favourites`,
+    CHECK_FAVOURITE: (userId: string | number) => `/api/v1/users/${userId}/favourites/check`,
   },
 
   // Signup Codes endpoints
@@ -31,10 +35,10 @@ export const API_ENDPOINTS = {
   // Hotel endpoints
   HOTELS: {
     LIST: '/api/v1/hotels',
-    DETAIL: (id: string) => `/api/v1/hotels/${id}`,
+    DETAIL: (id: string | number) => `/api/v1/hotels/${id}`,
     CREATE: '/api/v1/hotels',
-    UPDATE: (id: string) => `/api/v1/hotels/${id}`,
-    DELETE: (id: string) => `/api/v1/hotels/${id}`,
+    UPDATE: (id: string | number) => `/api/v1/hotels/${id}`,
+    DELETE: (id: string | number) => `/api/v1/hotels/${id}`,
   },
   
   // Add more endpoint categories as needed

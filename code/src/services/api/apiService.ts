@@ -1,5 +1,6 @@
 import apiClient from './apiClient';
 import { API_ENDPOINTS } from './endpoints';
+import { FavouriteHotel } from '../../types/hotel';
 
 // Generic response type
 export interface ApiResponse<T> {
@@ -119,6 +120,26 @@ export const userService = {
         'Content-Type': 'multipart/form-data',
       },
     });
+    return response.data;
+  },
+
+  getFavourites: async (userId: string | number): Promise<ApiResponse<FavouriteHotel[]>> => {
+    const response = await apiClient.get(API_ENDPOINTS.USER.GET_FAVOURITES(userId));
+    return response.data;
+  },
+
+  addFavourite: async (userId: string | number, hotelId: number): Promise<ApiResponse<FavouriteHotel>> => {
+    const response = await apiClient.post(API_ENDPOINTS.USER.ADD_FAVOURITE(userId), { hotelId });
+    return response.data;
+  },
+
+  removeFavourite: async (userId: string | number, hotelId: number): Promise<ApiResponse<void>> => {
+    const response = await apiClient.delete(API_ENDPOINTS.USER.REMOVE_FAVOURITE(userId), { data: { hotelId } });
+    return response.data;
+  },
+
+  checkFavourite: async (userId: string | number, hotelId: number): Promise<ApiResponse<{ isFavourite: boolean }>> => {
+    const response = await apiClient.get(API_ENDPOINTS.USER.CHECK_FAVOURITE(userId), { params: { hotelId } });
     return response.data;
   },
 };
