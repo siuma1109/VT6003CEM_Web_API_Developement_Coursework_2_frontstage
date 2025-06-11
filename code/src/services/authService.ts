@@ -63,6 +63,7 @@ class AuthService {
 
     try {
       await apiAuthService.logout();
+      window.location.href = "/";
     } catch (error) {
       console.error('AuthService: Logout API call failed:', error);
     } finally {
