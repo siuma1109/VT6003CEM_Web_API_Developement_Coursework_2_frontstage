@@ -32,7 +32,7 @@ class AuthService {
     try {
       const response = await apiAuthService.login(credentials);
       const { accessToken, refreshToken } = response.metaData;
-      
+
       this.setTokens(accessToken, refreshToken);
       return { accessToken, refreshToken };
     } catch (error) {
@@ -44,7 +44,7 @@ class AuthService {
     try {
       const response = await apiAuthService.register(userData);
       const { accessToken, refreshToken } = response.metaData;
-      
+
       this.setTokens(accessToken, refreshToken);
     } catch (error) {
       throw error;
@@ -53,7 +53,7 @@ class AuthService {
 
   public async logout(): Promise<void> {
     const currentToken = this.getAccessToken();
-    
+
     if (!currentToken) {
       console.warn('AuthService: No token found for logout');
       this.clearTokens();
@@ -103,7 +103,7 @@ const dispatchAuthStateChanged = () => {
 export const login = async (email: string, password: string): Promise<void> => {
   try {
     const response = await apiAuthService.login({ email, password });
-    localStorage.setItem('token', response.metaData.accessToken);
+    localStorage.setItem('access_token', response.metaData.accessToken);
     dispatchAuthStateChanged();
   } catch (error) {
     throw error;
@@ -113,16 +113,21 @@ export const login = async (email: string, password: string): Promise<void> => {
 export const register = async (email: string, password: string, name: string, signUpCode: string): Promise<void> => {
   try {
     const response = await apiAuthService.register({ email, password, name, signUpCode });
-    localStorage.setItem('token', response.metaData.accessToken);
+    localStorage.setItem('access_token', response.metaData.accessToken);
     dispatchAuthStateChanged();
   } catch (error) {
     throw error;
   }
 };
 
-export const logout = (): void => {
-  localStorage.removeItem('token');
-  dispatchAuthStateChanged();
+export const logout = async (): Promise<void> => {
+  try {
+    localStorage.removeItem('access_token');
+    await apiAuthService.logout();
+    dispatchAuthStateChanged();
+  } catch (error) {
+    throw error;
+  }
 };
 
 export default AuthService.getInstance(); 

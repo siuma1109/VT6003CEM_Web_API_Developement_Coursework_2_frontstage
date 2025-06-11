@@ -6,7 +6,7 @@ import { hotelService } from '../../services/api/hotelService';
 import { userService, Role } from '../../services/api/apiService';
 import { Hotel } from '../../types/hotel';
 import { ChatRoom } from '../../components/ChatRoom';
-import authService from '../../services/authService';
+import { useAuth } from '../../context/AuthContext';
 
 const SkeletonHotelDetails: React.FC = () => {
   return (
@@ -25,6 +25,7 @@ const SkeletonHotelDetails: React.FC = () => {
 export const HotelDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [hotel, setHotel] = useState<Hotel | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +64,7 @@ export const HotelDetails: React.FC = () => {
   const fetchUserProfile = async () => {
     try {
       setIsLoadingUser(true);
-      if (authService.isAuthenticated()) {
+      if (isAuthenticated) {
         const response = await userService.getProfile();
         setUserRoles(response.data.roles);
       } else {
@@ -77,23 +78,11 @@ export const HotelDetails: React.FC = () => {
     }
   };
 
-  // Listen for auth changes
+  // Effect to handle auth state changes
   useEffect(() => {
-    const handleAuthChange = () => {
-      fetchUserProfile();
-      fetchHotelDetails();
-    };
-
-    // Initial fetch
-    handleAuthChange();
-
-    // Add event listener for auth changes
-    window.addEventListener('authStateChanged', handleAuthChange);
-
-    return () => {
-      window.removeEventListener('authStateChanged', handleAuthChange);
-    };
-  }, [id, authService.isAuthenticated()]);
+    fetchUserProfile();
+    fetchHotelDetails();
+  }, [id, isAuthenticated]);
 
   const handleUpdateHotel = async () => {
     if (!id || !editedHotel) return;
@@ -131,7 +120,7 @@ export const HotelDetails: React.FC = () => {
     }
   };
 
-  const canEdit = userRoles.some(role => role.name === 'admin' || role.name === 'travel_agency_operator');
+  const canEdit = isAuthenticated && userRoles.some(role => role.name === 'admin' || role.name === 'travel_agency_operator');
 
   if (loading) {
     return <SkeletonHotelDetails />;
@@ -356,7 +345,7 @@ export const HotelDetails: React.FC = () => {
               
               {/* Action Buttons */}
               <div className="flex gap-4 mb-6">
-                {hotel.status === 'active' && (
+                {hotel.status === 'active' && isAuthenticated && (
                   <button
                     onClick={() => setIsChatOpen(true)}
                     className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center gap-2"

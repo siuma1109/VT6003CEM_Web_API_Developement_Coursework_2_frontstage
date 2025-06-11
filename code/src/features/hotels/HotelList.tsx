@@ -50,6 +50,7 @@ export const HotelList: React.FC = () => {
   const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [userRoles, setUserRoles] = useState<Role[]>([]);
+  const [isAuthenticated, setIsAuthenticated] = useState(authService.isAuthenticated());
   const [newHotel, setNewHotel] = useState({
     name: '',
     description: '',
@@ -82,16 +83,34 @@ export const HotelList: React.FC = () => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        if (authService.isAuthenticated()) {
+        if (isAuthenticated) {
           const response = await userService.getProfile();
           setUserRoles(response.data.roles);
+        } else {
+          setUserRoles([]);
         }
       } catch (err) {
         console.error('Error fetching user profile:', err);
+        setUserRoles([]);
       }
     };
 
     fetchUserProfile();
+  }, [isAuthenticated]);
+
+  // Add effect to listen for authentication changes
+  useEffect(() => {
+    const checkAuth = () => {
+      setIsAuthenticated(authService.isAuthenticated());
+    };
+
+    // Check auth state on mount
+    checkAuth();
+
+    // Set up interval to check auth state periodically
+    const interval = setInterval(checkAuth, 1000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const handlePageChange = (page: number) => {
