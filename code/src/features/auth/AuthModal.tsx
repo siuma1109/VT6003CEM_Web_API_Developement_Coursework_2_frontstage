@@ -6,11 +6,12 @@ import { authService as apiAuthService } from '../../services/api/apiService';
 interface AuthModalProps {
   onClose: () => void;
   returnUrl?: string | null;
+  onStepChange?: (step: AuthStep) => void;
 }
 
 type AuthStep = 'email-check' | 'login' | 'register';
 
-export const AuthModal: React.FC<AuthModalProps> = ({ onClose, returnUrl }) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ onClose, returnUrl, onStepChange }) => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState<AuthStep>('email-check');
   const [email, setEmail] = useState('');
@@ -30,8 +31,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, returnUrl }) => {
       const response = await apiAuthService.checkEmailExists(email);
       if (response.data.exists) {
         setCurrentStep('login');
+        onStepChange?.('login');
       } else {
         setCurrentStep('register');
+        onStepChange?.('register');
       }
     } catch (err) {
       setError('Error checking email. Please try again.');
@@ -79,6 +82,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, returnUrl }) => {
   const handleBack = () => {
     if (currentStep === 'login' || currentStep === 'register') {
       setCurrentStep('email-check');
+      onStepChange?.('email-check');
       setPassword('');
       setName('');
       setSignUpCode('');
@@ -100,6 +104,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, returnUrl }) => {
           onChange={(e) => setEmail(e.target.value)}
           className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
           placeholder="Please enter email address"
+          autoFocus
         />
       </div>
       <div>
@@ -141,6 +146,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, returnUrl }) => {
           onChange={(e) => setPassword(e.target.value)}
           className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
           placeholder="Please enter password"
+          autoFocus
         />
       </div>
       <div>
@@ -182,6 +188,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onClose, returnUrl }) => {
           onChange={(e) => setName(e.target.value)}
           className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
           placeholder="Please enter your full name"
+          autoFocus
         />
       </div>
       <div>

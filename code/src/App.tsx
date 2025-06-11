@@ -11,22 +11,36 @@ import ProfilePage from './pages/ProfilePage';
 
 function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [showLoginForm, setShowLoginForm] = useState(false);
+  const [authStep, setAuthStep] = useState<'email-check' | 'login' | 'register'>('email-check');
   const [returnUrl, setReturnUrl] = useState<string | null>(null);
 
   const handleLoginClick = () => {
     setIsAuthModalOpen(true);
+    setAuthStep('email-check');
   };
 
   const handleCloseAuthModal = () => {
     setIsAuthModalOpen(false);
     setReturnUrl(null);
+    setAuthStep('email-check');
+  };
+
+  const getModalTitle = () => {
+    switch (authStep) {
+      case 'login':
+        return 'Sign In';
+      case 'register':
+        return 'Create Account';
+      default:
+        return 'Welcome, Enter email for login / register';
+    }
   };
 
   useEffect(() => {
     const handleAuthRequired = (event: CustomEvent) => {
       setReturnUrl(event.detail.returnUrl);
       setIsAuthModalOpen(true);
+      setAuthStep('email-check');
     };
 
     window.addEventListener('authRequired', handleAuthRequired as EventListener);
@@ -50,9 +64,13 @@ function App() {
           <Modal
             isOpen={isAuthModalOpen}
             onClose={handleCloseAuthModal}
-            title="Login / Register"
+            title={getModalTitle()}
           >
-            <AuthModal onClose={handleCloseAuthModal} returnUrl={returnUrl} />
+            <AuthModal 
+              onClose={handleCloseAuthModal} 
+              returnUrl={returnUrl} 
+              onStepChange={setAuthStep}
+            />
           </Modal>
         </Router>
       </DarkModeProvider>
